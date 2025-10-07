@@ -39,12 +39,15 @@ exports.handler = async (event) => {
         allRequiredCourseNames.add(course);
 
         // ocrWords 목록과 필수 과목(course)의 유사도를 비교
-        const matches = stringSimilarity.findBestMatch(course, ocrWords);
+        const matches = stringSimilarity.findBestMatch(course.name, ocrWords);
 
-        // 가장 유사한 단어의 유사도(rating)가 0.5 이상이면 이수한 것으로 간주
-        if (matches.bestMatch.rating > 0.5) {
-            completed.push(course);
-        } else {
+        // 가장 유사한 단어의 유사도(rating)가 0.4 이상이면 이수한 것으로 간주
+         if (matches.bestMatch.rating > 0.4) {
+        completedGroups.add(course.group);
+        if (!completed.some(c => c.name === course.name)) {
+            completed.push({ name: course.name, group: course.group });
+        }
+         } else {
             // 유사도가 낮으면 미이수 처리 (필요하다면)
             remaining.push(course); 
         }
@@ -59,12 +62,15 @@ exports.handler = async (event) => {
         allRequiredCourseNames.add(course);
 
         // ocrWords 목록과 필수 과목(course)의 유사도를 비교
-        const matches = stringSimilarity.findBestMatch(course, ocrWords);
+        const matches = stringSimilarity.findBestMatch(course.name, ocrWords);
 
-        // 가장 유사한 단어의 유사도(rating)가 0.5 이상이면 이수한 것으로 간주
-        if (matches.bestMatch.rating > 0.5) {
-            completed.push(course);
-        } else {
+        // 가장 유사한 단어의 유사도(rating)가 0.4 이상이면 이수한 것으로 간주
+         if (matches.bestMatch.rating > 0.4) {
+        completedGroups.add(course.group);
+        if (!completed.some(c => c.name === course.name)) {
+            completed.push({ name: course.name, group: course.group });
+        }
+         } else {
             // 유사도가 낮으면 미이수 처리 (필요하다면)
             remaining.push(course); 
         }
@@ -91,16 +97,19 @@ exports.handler = async (event) => {
     foreignLanguages.forEach(c => allRequiredCourseNames.add(c));
 
     // 나머지 필수 교양 처리 (string-similarity 적용)
-    nonLanguageCourses.forEach(course => {
-        allRequiredCourseNames.add(course);
-        const matches = stringSimilarity.findBestMatch(course, ocrWords);
-        
-        // 유사도가 0.5 미만이면 미이수 과목으로 간주
-        if (matches.bestMatch.rating < 0.5) {
-            remaining.push(course);
-        }
-    });
-    break;
+nonLanguageCourses.forEach(course => {
+    // course가 객체인지 문자열인지 확인
+    const courseName = typeof course === 'object' ? course.name : course;
+
+    allRequiredCourseNames.add(courseName);
+    const matches = stringSimilarity.findBestMatch(courseName, ocrWords);
+    
+    // 유사도가 0.5 미만이면 미이수 과목으로 간주
+    if (matches.bestMatch.rating < 0.5) {
+        remaining.push(courseName);
+    }
+});
+break;
 
 // ... switch (category) ...
 case "학문의 세계":
@@ -144,25 +153,29 @@ case "학문의 세계":
     break;
 
             case "예체능":
-                displayType = 'count';
-                requiredCount = 3;
-                categoryData.courses.forEach(course => {
-                    allRequiredCourseNames.add(course);
-                    if (allText.includes(course)) completed.push(course);
-                });
-                completedCount = completed.length;
-                break;
-        }
+    displayType = 'count';
+    requiredCount = 3;
 
-        analysisResult[category] = {
-            description: categoryData.description,
-            completed,
-            remaining,
-            completedCount,
-            requiredCount,
-            displayType,
-        };
-    }
+    categoryData.courses.forEach(course => {
+        // course가 객체일 경우를 대비해 과목 이름(문자열)을 추출
+        const courseName = typeof course === 'object' ? course.name : course;
+
+        allRequiredCourseNames.add(courseName);
+
+        // ocrWords 목록과 현재 과목(courseName)의 유사도를 비교
+        const matches = stringSimilarity.findBestMatch(courseName, ocrWords);
+
+        // 유사도가 0.4 이상이면 이수한 것으로 간주
+        if (matches.bestMatch.rating > 0.4) {
+            // 중복 추가 방지
+            if (!completed.includes(courseName)) {
+                completed.push(courseName);
+            }
+        }
+    });
+
+    completedCount = completed.length;
+    break;
 
     // 4. 기타 이수 과목 분류 (이전과 동일)
     const courseCandidates = allText.match(/[a-zA-Z0-9가-힣]{2,}/g) || [];
