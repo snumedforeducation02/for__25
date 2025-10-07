@@ -99,8 +99,18 @@ function displayResults(data) {
                 break;
 
             case 'list_remaining_custom':
-                html += `<p><strong>📝 미이수 항목:</strong> ${details.remaining.length > 0 ? details.remaining.join(', ') : '모두 이수 완료'}</p>`;
-                break;
+    // remaining 배열의 각 항목이 객체인지 확인하고, 텍스트로 변환
+    const remainingItems = details.remaining.map(item => {
+        if (typeof item === 'object' && item !== null) {
+            // 필요에 따라 더 구체적인 처리가 가능하지만, 여기서는 '외국어'로 통일
+            return "외국어 (택1)";
+        }
+        return item; // 텍스트는 그대로 반환
+    });
+    // 중복 제거 (만약의 경우를 대비)
+    const uniqueRemainingItems = [...new Set(remainingItems)];
+    html += `<p><strong>📝 미이수 항목:</strong> ${uniqueRemainingItems.length > 0 ? uniqueRemainingItems.join(', ') : '모두 이수 완료'}</p>`;
+    break;
 
             case 'count':
                 const isCompleted = details.completedCount >= details.requiredCount;
