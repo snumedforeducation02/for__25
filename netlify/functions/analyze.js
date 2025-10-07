@@ -102,13 +102,6 @@ exports.handler = async (event) => {
     });
     break;
 
-            이 경우, string-similarity를 사용하면 정규식보다 더 유연하게 오타나 약간의 차이를 극복할 수 있습니다. OCR로 인식된 단어들과 "학문의 세계" 과목 목록을 비교하여 가장 유사한 과목을 찾아 그 과목의 그룹을 이수한 것으로 처리하면 됩니다.
-
-## analyze.js 수정 코드
-switch 문 안의 case "학문의 세계": 부분을 아래 코드로 교체하세요.
-
-JavaScript
-
 // ... switch (category) ...
 case "학문의 세계":
     displayType = 'group_count';
