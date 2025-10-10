@@ -71,6 +71,8 @@ exports.handler = async (event) => {
 
            // analyze.js
 
+            // analyze.js
+
             case "필수 교양":
                 displayType = 'list_all'; 
                 const foreignLanguages = [
@@ -78,9 +80,8 @@ exports.handler = async (event) => {
                     "스페인어", "포르투갈어", "몽골어", "스와힐리어", "이태리어", 
                     "히브리어", "라틴어", "그리스어", "말레이-인도네시아어", 
                     "산스크리트어", "베트남어", "아랍어", "힌디어", "일본어",
-                    "독문 강독" // <-- '독문강독'이 아닌 '독문 강독'으로 띄어쓰기 확인!
+                    "독문 강독"
                 ];
-                // 특별 처리할 과목 목록을 확장합니다.
                 const specialCourses = [
                     "대학 글쓰기 1", 
                     "대학 글쓰기 2: 과학기술글쓰기", 
@@ -90,69 +91,65 @@ exports.handler = async (event) => {
                     "대학영어 2"
                 ];
 
-                // --- 1. 특별 처리 과목들의 이수 여부를 먼저 확인합니다 ---
-                // '대학 글쓰기'
-                const hasBaseWriting = allText.includes("대학") && allText.includes("글쓰");
-                if (hasBaseWriting) {
+                // --- 1단계: 이수한 모든 과목('completed' 배열)을 먼저 확정합니다 ---
+
+                // '대학 글쓰기' 처리
+                if (allText.includes("대학") && allText.includes("글쓰")) {
                     if (allText.includes("과학기술글")) {
                         completed.push("대학 글쓰기 2: 과학기술글쓰기");
                     } else {
                         completed.push("대학 글쓰기 1");
                     }
                 }
-                // '생물학'
+                // '생물학' 처리
                 if (allText.includes("생물학실")) {
                     completed.push("생물학실험");
                 } else if (allText.includes("생물학")) {
                     completed.push("생물학");
                 }
-                // '대학영어' (정규식으로 정확하게 1, 2 구분)
-                if (/대학영어\s*2/.test(allText)) {
+                // '대학영어' 처리 (더 정확한 정규식 사용)
+                if (/(대학영어|대학 영어)\s*2/.test(allText)) {
                     completed.push("대학영어 2");
-                } else if (/대학영어\s*1/.test(allText)) {
+                } else if (/(대학영어|대학 영어)\s*1/.test(allText)) {
                     completed.push("대학영어 1");
                 }
-
-                // --- 2. 외국어 그룹을 처리합니다 ---
-                let foreignLanguageCompleted = false;
+                
+                // 외국어 처리
                 for (const lang of foreignLanguages) {
                     if (stringSimilarity.findBestMatch(lang, ocrWords).bestMatch.rating > 0.6) {
                         if (!completed.includes(lang)) completed.push(lang);
-                        foreignLanguageCompleted = true;
-                        break;
+                        break; // 하나만 찾으면 중단
                     }
                 }
-                
-                // --- 3. 나머지 일반 과목들을 처리합니다 ---
+
+                // 나머지 일반 과목 처리
                 const otherCourses = categoryData.courses.filter(course => {
                     const courseName = typeof course === 'object' ? course.name : course;
                     return !foreignLanguages.includes(courseName) && !specialCourses.includes(courseName);
                 });
-
                 otherCourses.forEach(course => {
                     const courseName = typeof course === 'object' ? course.name : course;
-                    const matches = stringSimilarity.findBestMatch(courseName, ocrWords);
-                    if (matches.bestMatch.rating > 0.5) {
+                    if (stringSimilarity.findBestMatch(courseName, ocrWords).bestMatch.rating > 0.5) {
                         if (!completed.includes(courseName)) completed.push(courseName);
                     }
                 });
 
-                // --- 4. 모든 이수 처리가 끝난 후, 전체 필수 목록과 비교하여 '미이수' 목록을 최종적으로 생성합니다 ---
+                // --- 2단계: 확정된 'completed' 목록을 기준으로 'remaining' 목록을 단 한번만 생성합니다 ---
                 const allRequiredInCat = categoryData.courses.map(c => typeof c === 'object' ? c.name : c);
-                const completedForeignLang = completed.some(c => foreignLanguages.includes(c));
+                const isForeignLangGroupCompleted = completed.some(c => foreignLanguages.includes(c));
 
-                allRequiredInCat.forEach(courseName => {
-                    allRequiredCourseNames.add(courseName);
-                    // 이수 목록에 없고, 외국어 그룹 과목도 아닐 경우 미이수로 추가
-                    if (!completed.includes(courseName) && !foreignLanguages.includes(courseName)) {
-                        remaining.push(courseName);
-                    }
-                });
+                // 전체 필수 목록에서, 이수했거나(completed) 외국어 그룹에 속한 과목을 제외하고 미이수 목록을 만듭니다.
+                remaining = allRequiredInCat.filter(courseName => 
+                    !completed.includes(courseName) && !foreignLanguages.includes(courseName)
+                );
                 
-                // 외국어를 하나도 이수하지 않았다면, 미이수 목록에 "외국어 (택1)" 추가
-                if (!completedForeignLang) {
+                // 외국어 그룹을 이수하지 못했다면, 미이수 목록에 "외국어 (택1)"을 추가합니다.
+                if (!isForeignLangGroupCompleted) {
                     remaining.push("외국어 (택1)");
                 }
+
+                // 마지막으로, 모든 과목 이름을 Set에 추가합니다.
+                allRequiredInCat.forEach(courseName => allRequiredCourseNames.add(courseName));
                 break;
             
             case "학문의 세계":
@@ -206,28 +203,17 @@ exports.handler = async (event) => {
         };
     }
 
-    // 4. 기타 수료 요건 처리
-    analysisResult["비교과"] = {
-        description: "비교과 수료 요건 달성 현황입니다.",
-        data: checklist,
-        displayType: 'checklist'
-    };
-
-    // '기타 이수 과목' 섹션은 여기서 제거되었습니다.
-     const courseCandidates = allText.match(/[a-zA-Z0-9가-힣]{2,}/g) || [];
-    const uniqueCourses = [...new Set(courseCandidates)];
-    const otherCompletedCourses = uniqueCourses.filter(course => !allRequiredCourseNames.has(course));
-    analysisResult["기타 이수 과목"] = {
-        description: "수료 기준에 포함되지 않은 이수 과목 목록입니다.",
-        completed: otherCompletedCourses,
-        displayType: 'list_completed_only'
-    };
-    // --- 여기에 체크리스트 결과 추가 ---
-    analysisResult["기타 수료 요건"] = {
-        description: "비교과 수료 요건 달성 현황입니다.",
-        data: checklist, // 프론트에서 받은 데이터를 그대로 다시 보냄
-        displayType: 'checklist'
-    };
+    // ...
+analysisResult["비교과"] = {
+    description: "비교과 수료 요건 달성 현황입니다.",
+    data: checklist,
+    displayType: 'checklist'
+};
+analysisResult["기타 이수 과목"] = {
+    description: "수료 기준에 포함되지 않은 이수 과목 목록입니다.",
+    completed: otherCompletedCourses,
+    displayType: 'list_completed_only'
+};
 
 
     // 5. 최종 분석 결과 전송
