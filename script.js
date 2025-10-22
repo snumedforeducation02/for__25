@@ -26,7 +26,7 @@ const artsSelectElement = document.getElementById('arts-and-sports-select');
 const artsChoices = new Choices(artsSelectElement, {
     removeItemButton: true,
     placeholder: true,
-    placeholderValue: '수강 과목을 선택하세요',
+    placeholderValue: '수강한 과목을 선택하세요',
     searchPlaceholderValue: '과목 검색...',
     // 예체능은 개수 제한이 없으므로 maxItemCount는 제외
 });
