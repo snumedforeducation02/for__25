@@ -4,81 +4,116 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     text-align: center;
-@@ -57,15 +54,9 @@ h3 {
+    padding: 20px;
+    background-color: #f4f7f6; /* 부드러운 배경색 추가 */
+    color: #333;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+}
+
+h1 {
+    font-size: 2.0rem; /* 32px */
+    margin-bottom: 12px;
+}
+
+h2 {
+    font-size: 1.25rem; /* 20px */
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+h3 {
+    font-size: 1.1rem; /* 18px */
+    margin-bottom: 16px;
+}
+
+.subtitle {
+    font-size: 1rem; /* 16px */
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 30px;
+}
+
+/* =================================
+   2. 공용 박스 스타일 (입력창, 결과창)
+   ================================= */
+.selection-box,
+.checklist,
+.category-result {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+/* =================================
    3. 입력 요소 스타일
    ================================= */
 
-/* 전공 선택 드롭다운 */
+/* 전공 선택 드롭다운 박스를 중앙에 배치하고 높이 조정 */
 #elective-courses-select {
-    display: block;
-    margin: 16px auto; /* 위아래 여백 추가 및 중앙 정렬 */
-    width: 100%;
-    min-height: 160px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-/* 전공 선택 드롭다운 (Choices.js 적용 후 원래 select 숨기기 강화) */
-select#elective-courses-select[multiple] {
-    display: none !important; /* !important 추가 */
+    display: block;             /* select 요소를 블록처럼 다루기 위해 변경 */
+    margin-left: auto;          /* 왼쪽 여백을 자동으로 계산 */
+    margin-right: auto;         /* 오른쪽 여백을 자동으로 계산 */
+    width: 90%;                 /* 박스 너비의 90%를 차지하도록 설정 */
+    min-height: 160px;          /* 높이를 키워 여러 항목을 보기 편하게 함 */
 }
 
+
 /* 비교과 체크리스트 아이템 */
-@@ -88,7 +79,7 @@ h3 {
+.check-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.check-item input[type="checkbox"] {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+}
+
+.check-item label {
+    font-size: 1rem;
+}
+
 /* =================================
    4. 버튼 및 상태 표시
    ================================= */
-button {
 button#analyze-button { /* ID 추가하여 구체성 높임 */
     background-color: #007bff;
     color: white;
     border: none;
-@@ -97,9 +88,10 @@ button {
+    padding: 12px 24px;
+    font-size: 1.1rem;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.2s ease; /* 부드러운 색상 변경 효과 */
     margin-top: 20px; /* 위쪽 여백 추가 */
 }
 
-button:hover {
 button#analyze-button:hover {
     background-color: #0056b3;
 }
 
-@@ -111,7 +103,40 @@ button:hover {
+.error-notice, .alert {
+    font-size: 0.9rem; /* 14px */
+    color: #666;
+    margin-top: 16px;
+    line-height: 1.5; /* 줄 간격 추가 */
 }
 
 /* =================================
-   5. 유틸리티 (하이라이트, 숨김 등)
-   5. Choices.js 커스텀 스타일
+   5. Choices.js 커스텀 스타일 (최소화된 버전)
    ================================= */
-/* 선택 취소 버튼 텍스트 강제 변경 및 스타일 조정 */
-.choices__list--multiple .choices__item .choices__button {
-    color: transparent; /* 기존 텍스트(Remove item) 숨기기 */
-    position: relative;
-    padding: 2px 6px;
-    font-size: 0.8rem;
-    background-image: none;
-    border-left: 1px solid rgba(0,0,0,0.2);
-    margin-left: 8px;
-    border-radius: 0 3px 3px 0;
-}
-.choices__list--multiple .choices__item .choices__button::after {
-    content: '선택 취소'; /* 새로운 텍스트 추가 */
-    color: #007bff; /* 버튼 텍스트 색상 */
-    position: absolute;
-    left: 6px;
-    top: 2px;
-    font-size: 0.8rem;
-    white-space: nowrap; /* 텍스트가 줄바꿈되지 않도록 */
-}
-
-/* 마우스 올렸을 때 효과 (선택 사항) */
-.choices__list--multiple .choices__item .choices__button:hover {
-    background-color: rgba(0,0,0,0.1);
-}
-.choices__list--multiple .choices__item .choices__button:hover::after {
-    color: #0056b3; /* 호버 시 텍스트 색상 변경 */
-}
+/* 필요한 경우 여기에 Choices.js 관련 최소 스타일 추가 가능 */
 
 
 /* =================================
@@ -86,17 +121,16 @@ button#analyze-button:hover {
    ================================= */
 .highlight {
     background-color: #fff3cd; /* 부드러운 노란색 */
-@@ -123,26 +148,60 @@ button:hover {
+    color: #5d4c1b;
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
 
 .hidden {
     display: none;
-}/* style.css */
 }
 
-/* 1. Choices.js가 적용된 원래의 select 태그 숨기기 (강화) */
-/* (사진의 맨 아래 리스트 제거) */
-select[multiple]#elective-courses-select {
-    display: none !important; /* !important를 추가하여 확실하게 숨김 */
 /* 체크박스를 2열 그리드로 정렬합니다 */
 .checklist-grid {
     display: grid;
@@ -105,23 +139,11 @@ select[multiple]#elective-courses-select {
     margin-top: 16px;
 }
 
-/* 2. Choices.js '선택 취소' 버튼 스타일 조정 */
-.choices__list--multiple .choices__item .choices__button {
-    /* 기존 스타일을 일부 덮어씁니다 */
-    padding: 2px 6px;       /* 버튼 내부 여백 줄이기 */
-    font-size: 0.8rem;      /* 버튼 글자 크기 줄이기 */
-    background-image: none; /* 기본 X 아이콘 제거 (텍스트만 보이도록) */
-    border-left: 1px solid rgba(0,0,0,0.2); /* 왼쪽에 구분선 추가 */
-    margin-left: 8px;       /* 태그 이름과 버튼 사이 간격 */
-    border-radius: 0 3px 3px 0; /* 오른쪽 모서리만 둥글게 */
 /* 결과 표시 관련 스타일 */
 .category-result h3 {
     margin-bottom: 15px;
 }
 
-/* 마우스 올렸을 때 효과 (선택 사항) */
-.choices__list--multiple .choices__item .choices__button:hover {
-    background-color: rgba(0,0,0,0.1);
 .description {
     font-size: 14px;
     color: #666;
