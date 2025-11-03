@@ -60,22 +60,17 @@ const allAcademiaCourses = [
 const allAcademiaGroups = [
     "언어와 문학", "문화와 예술", "역사와 철학", "인간과 사회", "정치와 경제"
 ];
-exports.handler = async (event, context) => {
-    try {
-        // 1. 클라이언트로부터 데이터 수신
-        // ❗️ [수정] 데이터가 불완전할 경우를 대비한 방어 코드 추가
-        const bodyData = JSON.parse(event.body || "{}"); // 1. body가 null일 경우 대비
-        const allText = bodyData.text || ""; // 2. text가 undefined일 경우, 빈 문자열("")로 대체
-        const checklistData = bodyData.checklist || {}; // 3. checklist가 undefined일 경우, 빈 객체({})로 대체
         
 exports.handler = async (event, context) => {
     try {
         // 1. 클라이언트로부터 데이터 수신
-        const { text: allText, checklist: checklistData } = JSON.parse(event.body);
+        // ❗️ [핵심 수정] 데이터가 불완전할 경우를 대비한 방어 코드
+        const bodyData = JSON.parse(event.body || "{}"); // 1. body가 null일 경우 대비
+        const allText = bodyData.text || ""; // 2. text가 undefined일 경우, 빈 문자열("")로 대체
+        const checklistData = bodyData.checklist || {}; // 3. checklist가 undefined일 경우, 빈 객체({})로 대체
 
         // 2. 최종 분석 결과를 담을 객체
         const analysisResult = {};
-
         // ======================================================
         // 3. "전공 필수" 분석 (이전 단계와 동일)
         // ======================================================
