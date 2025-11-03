@@ -1,6 +1,6 @@
 // ===================================================
 // ❗️❗️ script.js 파일 전체를 이 코드로 덮어쓰세요 ❗️❗️
-// (필수/선택 요건 분리, 목록 스타일링 로직 추가)
+// (전공선택/예체능 추천 목록을 버튼으로 변경, 학문의 세계 버튼 레이아웃 지원)
 // ===================================================
 
 // HTML 요소들을 가져옵니다.
@@ -44,8 +44,6 @@ const languageChoices = new Choices(languageSelectElement, {
 // '분석 시작!' 버튼 클릭 이벤트
 analyzeButton.addEventListener('click', async () => {
     
-    // (월 1회 제한 로직 삭제됨)
-
     // 로딩 UI 표시
     loadingIndicator.classList.remove('hidden');
     resultArea.innerHTML = '';
@@ -54,7 +52,6 @@ analyzeButton.addEventListener('click', async () => {
         // --- 1. 사용자가 선택한 과목 데이터 수집 ---
         const completedCourses = [];
 
-        // (데이터 수집 로직은 모두 동일)
         document.querySelectorAll('#required-courses-list input[type="checkbox"]:checked').forEach(checkbox => {
             completedCourses.push(checkbox.value);
         });
@@ -114,11 +111,9 @@ analyzeButton.addEventListener('click', async () => {
             throw new Error('서버에서 오류가 발생했습니다.'); 
         }
 
-        // (결과 표시 버그 수정됨)
         const responseData = await response.json();
+        // ❗️ 34번 단계에서 수정한 부분 (analysisResult 객체 전달)
         displayResults(responseData.analysisResult); 
-
-        // (localStorage.setItem 삭제됨)
 
     } catch (error) {
         console.error('분석 중 오류 발생:', error);
@@ -132,15 +127,13 @@ analyzeButton.addEventListener('click', async () => {
 function displayResults(data) {
     let html = '<h2>🔍 분석 결과</h2>';
     
-    // ❗️ [수정 1] "비교과"를 "필수 수료 요건", "선택 수료 요건"으로 변경
+    // (필수/선택 수료 요건 분리됨)
     const categoryOrder = [
         "전공 필수", "전공 선택", "필수 교양", 
         "학문의 세계", "예체능", 
         "필수 수료 요건", "선택 수료 요건"
     ];
     
-    // ❗️ [수정 2] checklistLabels 변수 삭제 (이제 서버에서 받음)
-
     if (!data) {
         resultArea.innerHTML = '<p class="error">분석 결과를 받아오는 데 실패했습니다.</p>';
         return;
@@ -179,18 +172,38 @@ function displayResults(data) {
                 }
                 break;
 
-            case 'credit_count': // '전공 선택' 및 '예체능'
+            // ❗️❗️ [수정 1] 전공 선택 / 예체능 ❗️❗️
+            case 'credit_count':
                 const isCreditsCompleted = details.remainingCredits === 0;
                 html += `<p class="summary ${isCreditsCompleted ? 'completed' : 'in-progress'}"><strong>상태: ${details.requiredCredits}학점 중 ${details.completedCredits}학점 이수 (${details.remainingCredits}학점 남음) ${isCreditsCompleted ? '✔️' : ''}</strong></p>`;
+                
                 if (details.completed.length > 0) {
                     html += `<p><strong>✅ 이수한 과목:</strong> ${details.completed.join(', ')}</p>`;
                 }
+                
+                // 추천 과목을 버튼 + 리스트로 변경
                 if (details.recommended.length > 0 && !isCreditsCompleted) {
-                    html += `<p><strong>💡 추천 과목:</strong> ${details.recommended.join(', ')}</p>`;
+                    // category 이름을 기반으로 고유 ID 생성 (예: '전공선택' -> 'courses-list-electives-')
+                    const safeCategoryName = category.replace(/[^a-zA-Z0-9]/g, '');
+                    const elementId = `courses-list-electives-${safeCategoryName}`; 
+                    
+                    html += `<div class="recommendation-area single-button-area">`; // CSS 레이아웃을 위한 래퍼
+                    html += `<strong>💡 추천 과목 (클릭하여 확인):</strong>`;
+                    html += `<button class="toggle-button" onclick="toggleCourseList('${elementId}')">
+                                 추천 과목 목록 보기 (${details.recommended.length}개)
+                             </button>`;
+                    
+                    // "한 줄에 하나씩" 리스트
+                    const courseListHtml = details.recommended.map(course => `<li>${course}</li>`).join('');
+                    html += `<div id="${elementId}" class="course-list-hidden">
+                                 <ul class="recommended-list">${courseListHtml}</ul>
+                             </div>`;
+                    html += `</div>`;
                 }
                 break;
 
-            case 'academia_group_count': // '학문의 세계'
+            // ❗️❗️ [수정 2] 학문의 세계 ❗️❗️
+            case 'academia_group_count':
                 const isGroupMet = details.completedGroupCount >= details.requiredGroupCount;
                 const isCreditMet = details.totalAcademiaCredits >= details.requiredCredits;
                 const remainingGroupsCount = Math.max(0, 5 - details.completedGroupCount);
@@ -205,13 +218,21 @@ function displayResults(data) {
                 }
                 if (!isGroupMet && details.remainingGroups.length > 0) {
                     html += `<p><strong>📝 채워야 할 영역:</strong> ${details.remainingGroups.join(', ')}</p>`;
-                    html += '<div class="recommendation-area"><strong>💡 영역별 들을 수 있는 교양 (클릭하여 확인):</strong>';
+                    
+                    // CSS 레이아웃을 위한 래퍼
+                    html += '<div class="recommendation-area multi-button-area">'; 
+                    html += '<strong>💡 영역별 들을 수 있는 교양 (클릭하여 확인):</strong>';
+                    
                     for (const groupName of details.remainingGroups) {
                         const coursesInGroup = details.recommendedCoursesByGroup[groupName] || [];
                         const elementId = `courses-list-${groupName.replace(/[^a-zA-Z0-9]/g, '')}`; 
                         html += `<button class="toggle-button" onclick="toggleCourseList('${elementId}')">${groupName} 과목 목록 보기 (${coursesInGroup.length}개)</button>`;
-                        
-                        // ❗️ [수정 3] "한 줄에 하나씩" 리스트로 변경
+                    }
+
+                    // (❗️ 버튼과 목록 div를 분리하여 레이아웃이 깨지지 않게 함)
+                    for (const groupName of details.remainingGroups) {
+                        const coursesInGroup = details.recommendedCoursesByGroup[groupName] || [];
+                        const elementId = `courses-list-${groupName.replace(/[^a-zA-Z0-9]/g, '')}`; 
                         const courseListHtml = coursesInGroup.map(course => `<li>${course}</li>`).join('');
                         html += `<div id="${elementId}" class="course-list-hidden">
                                      <ul class="recommended-list">${courseListHtml}</ul>
@@ -221,9 +242,7 @@ function displayResults(data) {
                 }
                 break;
                 
-            // ❗️ [수정 4] 'checklist' 케이스 삭제
-            
-            // ❗️ [수정 5] "필수 수료 요건"을 위한 새 케이스
+            // (필수 수료 요건)
             case 'simple_checklist':
                 const completedItems = details.completed.map(key => details.labels[key]);
                 const remainingCheckItems = details.remaining.map(key => details.labels[key]);
@@ -232,7 +251,7 @@ function displayResults(data) {
                 html += `<p><strong>📝 남은 요건:</strong> ${remainingCheckItems.length > 0 ? remainingCheckItems.join(', ') : '모두 완료'}</p>`;
                 break;
 
-            // ❗️ [수정 6] "선택 수료 요건"을 위한 새 케이스
+            // (선택 수료 요건)
             case 'count_checklist':
                 const isElecCompleted = details.neededCount === 0;
                 html += `<p class="summary ${isElecCompleted ? 'completed' : 'in-progress'}">
@@ -252,12 +271,10 @@ function displayResults(data) {
 
 /**
  * 토글 버튼 클릭 시 과목 목록을 보여주거나 숨깁니다.
- * @param {string} elementId - 보여주거나 숨길 div의 ID
  */
 function toggleCourseList(elementId) {
     const listElement = document.getElementById(elementId);
     if (listElement) {
-        // ❗️ [수정 7] CSS 클래스로 제어 (더 부드러움)
         listElement.classList.toggle('visible');
     }
 }
