@@ -214,7 +214,7 @@ function displayResults(data) {
                         const coursesInGroup = details.recommendedCoursesByGroup[groupName] || [];
                         const courseListHtml = coursesInGroup.map(c => `<li>${c}</li>`).join('');
                         html += `<div id="${elementId}" class="course-list-hidden">
-                                     <h4 class="list-title">〈${groupName}〉 과목 목록</h4>
+                                     <h4 class="list-title"><span class="highlight">〈${groupName}〉 과목 목록</span></h4>
                                      <ul class="recommended-list">${courseListHtml}</ul>
                                  </div>`;
                     }
