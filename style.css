@@ -261,7 +261,7 @@ button#analyze-button:hover {
 
 /* 1. "목록 보기" 버튼 (Request 2) */
 .toggle-button {
-    background-color: #004a9e; /* 서울대 메인 컬러 */
+    background-color: #3694f7; /* 서울대 메인 컬러 */
     color: white;
     border: none;
     padding: 8px 12px;
@@ -275,7 +275,7 @@ button#analyze-button:hover {
 }
 
 .toggle-button:hover {
-    background-color: #00336b; /* 더 어두운 파란색 */
+    background-color: #3694f7; /* 더 어두운 파란색 */
 }
 
 .toggle-button:active {
