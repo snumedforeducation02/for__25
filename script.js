@@ -45,7 +45,7 @@ const languageChoices = new Choices(languageSelectElement, {
 
 // '분석 시작!' 버튼 클릭 이벤트
 analyzeButton.addEventListener('click', async () => {
-    // 월 1회 사용 제한 로직
+    // 월 1회 사용 제한 로직 (기존과 동일)
     const lastUsed = localStorage.getItem('lastAnalysisTime');
     const now = new Date();
     if (lastUsed) {
@@ -73,22 +73,25 @@ analyzeButton.addEventListener('click', async () => {
         const selectedElectives = choices.getValue(true);
         completedCourses.push(...selectedElectives);
         
-        // --- 1-3. 여기에 '필수 교양' 과목을 읽는 코드를 추가합니다 ---
+        // --- 1-3. '필수 교양' (체크박스) 과목 읽기 ---
         document.querySelectorAll('#liberal-arts-courses-list input[type="checkbox"]:checked').forEach(checkbox => {
             completedCourses.push(checkbox.value);
-            
-            // --- 1-4. '학문의 세계' 과목 가져오기 추가 ---
+        }); 
+        // ❗️❗️❗️ 버그 수정: 여기서 forEach 루프가 닫혀야 합니다. ❗️❗️❗️
+
+        // --- 1-4. '필수 교양' (외국어) 과목 읽기 (누락된 부분 추가) ---
+        const selectedLanguages = languageChoices.getValue(true);
+        completedCourses.push(...selectedLanguages);
+
+        // --- 1-5. '학문의 세계' 과목 가져오기 (루프 밖으로 이동) ---
         const selectedAcademia = academiaChoices.getValue(true);
         completedCourses.push(...selectedAcademia);
-        // ---------------------------------------------
-            // --- 1-5. '예체능' 과목 가져오기 (방식 변경) ---
+
+        // --- 1-6. '예체능' 과목 가져오기 (루프 밖으로 이동) ---
         const selectedArts = artsChoices.getValue(true);
         completedCourses.push(...selectedArts);
 
-        const allText = completedCourses.join(' ');
-        });
-        // -------------------------------------------------------------
-        // --- '타단과대 전공' 수강 횟수 가져오기 추가 ---
+        // --- '타단과대 전공' 수강 횟수 가져오기 (루프 밖으로 이동) ---
         const otherCollegeCheckbox = document.getElementById('other-college-checkbox');
         const otherCollegeCountInput = document.getElementById('other-college-count');
 
@@ -99,9 +102,10 @@ analyzeButton.addEventListener('click', async () => {
             }
         }
         
-                // --- '음미대, 미학과 전공, 교양' 수강 횟수 가져오기 추가 ---
+        // --- '음미대, 미학과 전공, 교양' 수강 횟수 가져오기 (루프 밖으로 이동) ---
         const extraAnSCheckbox = document.getElementById('extra-artsandsports-checkbox');
-        const extraAnSCountInput = document.getElementById('extra-artsandsports-count');
+        // ❗️❗️❗️ ID 버그 수정: extra-artsandsports-checkbox -> extra-artsandsports-count
+        const extraAnSCountInput = document.getElementById('extra-artsandsports-count'); 
 
         if (extraAnSCheckbox.checked && extraAnSCountInput.value) {
             const count = parseInt(extraAnSCountInput.value, 10) || 0;
@@ -109,6 +113,9 @@ analyzeButton.addEventListener('click', async () => {
                 completedCourses.push('음미대, 미학과 전공/교양');
             }
         }
+
+        // ❗️❗️❗️ 버그 수정: 모든 과목 수집이 끝난 후 allText를 생성합니다. ❗️❗️❗️
+        const allText = completedCourses.join(' ');
 
         // --- 2. 비교과 체크리스트 데이터 수집 ---
         const checklistData = {
@@ -126,7 +133,7 @@ analyzeButton.addEventListener('click', async () => {
         const response = await fetch('/.netlify/functions/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: allText, checklist: checklistData }), 
+            body: JSON.stringify({ text: allText, checklist: checklistData }), // allText가 올바른 위치에서 전송됨
         });
 
         if (!response.ok) {
