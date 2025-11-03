@@ -129,7 +129,7 @@ export default async function handler(req, res) {
     const remainingCredits = Math.max(0, requiredElectiveCredits - totalElectiveCredits);
 
     analysisResult["전공 선택"] = {
-      description: "12학점 이상 이수해야 합니다. (*국제의학의 이해, 몸 속으로의 여행, 세계에술 속 의학의 이해, 통일의료-2학점, 그외 3학점)",
+      description: "12학점 이상 이수해야 합니다. <br>*국제의학의 이해, 몸 속으로의 여행, 세계에술 속 의학의 이해, 통일의료-2학점, 그외 3학점",
       displayType: "credit_count",
       completed: completedElectiveCourses,
       recommended: recommendedElectiveCourses,
@@ -168,6 +168,7 @@ export default async function handler(req, res) {
       remainingLiberalArts.push(`영어/외국어 (${neededLanguages}과목 추가 필요)`);
 
     analysisResult["필수 교양"] = {
+      description: "아래 교양 과목을 모두 이수해야 합니다.",
       displayType: "list_all",
       completed: completedLiberalArts,
       remaining: remainingLiberalArts
