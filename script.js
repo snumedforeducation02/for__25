@@ -1,6 +1,6 @@
 // ===================================================
 // ❗️❗️ script.js 파일 전체를 이 코드로 덮어쓰세요 ❗️❗️
-// (월 1회 제한 제거, 결과 표시 버그 수정, 오타 수정)
+// (필수/선택 요건 분리, 목록 스타일링 로직 추가)
 // ===================================================
 
 // HTML 요소들을 가져옵니다.
@@ -44,19 +44,7 @@ const languageChoices = new Choices(languageSelectElement, {
 // '분석 시작!' 버튼 클릭 이벤트
 analyzeButton.addEventListener('click', async () => {
     
-    // ❗️❗️ [수정 1] 월 1회 사용 제한 로직 (const lastUsed... 부터) 삭제 ❗️❗️
-    /*
-    // 월 1회 사용 제한 로직
-    const lastUsed = localStorage.getItem('lastAnalysisTime');
-    const now = new Date();
-    if (lastUsed) {
-        const lastUsedDate = new Date(parseInt(lastUsed));
-        if (now.getFullYear() === lastUsedDate.getFullYear() && now.getMonth() === lastUsedDate.getMonth()) {
-            alert('이 기능은 한 달에 한 번만 사용할 수 있습니다.');
-            return; 
-        }
-    }
-    */
+    // (월 1회 제한 로직 삭제됨)
 
     // 로딩 UI 표시
     loadingIndicator.classList.remove('hidden');
@@ -67,28 +55,21 @@ analyzeButton.addEventListener('click', async () => {
         const completedCourses = [];
 
         // (데이터 수집 로직은 모두 동일)
-        // 1-1. 전공 필수
         document.querySelectorAll('#required-courses-list input[type="checkbox"]:checked').forEach(checkbox => {
             completedCourses.push(checkbox.value);
         });
-        // 1-2. 전공 선택
         const selectedElectives = choices.getValue(true);
         completedCourses.push(...selectedElectives);
-        // 1-3. 필수 교양 (체크박스)
         document.querySelectorAll('#liberal-arts-courses-list input[type="checkbox"]:checked').forEach(checkbox => {
             completedCourses.push(checkbox.value);
         }); 
-        // 1-4. 필수 교양 (외국어)
         const selectedLanguages = languageChoices.getValue(true);
         completedCourses.push(...selectedLanguages);
-        // 1-5. 학문의 세계
         const selectedAcademia = academiaChoices.getValue(true);
         completedCourses.push(...selectedAcademia);
-        // 1-6. 예체능
         const selectedArts = artsChoices.getValue(true);
         completedCourses.push(...selectedArts);
         
-        // 1-7. 타단과대
         const otherCollegeCheckbox = document.getElementById('other-college-checkbox');
         const otherCollegeCountInput = document.getElementById('other-college-count');
         if (otherCollegeCheckbox && otherCollegeCheckbox.checked && otherCollegeCountInput && otherCollegeCountInput.value) {
@@ -98,10 +79,8 @@ analyzeButton.addEventListener('click', async () => {
             }
         }
         
-        // 1-8. 음미대/미학과
         const extraAnSCheckbox = document.getElementById('extra-artsandsports-checkbox');
         const extraAnSCountInput = document.getElementById('extra-artsandsports-count'); 
-        
         if (extraAnSCheckbox && extraAnSCheckbox.checked && extraAnSCountInput && extraAnSCountInput.value) {
             const count = parseInt(extraAnSCountInput.value, 10) || 0;
             for (let i = 0; i < count; i++) {
@@ -124,8 +103,7 @@ analyzeButton.addEventListener('click', async () => {
         };
 
         // --- 3. 백엔드로 데이터 전송 ---
-        // (❗️ Vercel 사용 기준인 /api/analyze 경로로 수정했습니다)
-        // (만약 Netlify를 쓰신다면 '/.netlify/functions/analyze'로 다시 변경하세요)
+        // (Vercel 기준 /api/analyze, Netlify 기준 /.netlify/functions/analyze)
         const response = await fetch('/api/analyze', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -136,13 +114,11 @@ analyzeButton.addEventListener('click', async () => {
             throw new Error('서버에서 오류가 발생했습니다.'); 
         }
 
-        // ❗️❗️ [수정 2] "결과 안보임" 버그 수정 ❗️❗️
-        // 서버가 보낸 { analysisResult: ... } 객체에 접근합니다.
+        // (결과 표시 버그 수정됨)
         const responseData = await response.json();
-        displayResults(responseData.analysisResult); // 'data' 대신 'responseData.analysisResult'를 전달
+        displayResults(responseData.analysisResult); 
 
-        // ❗️❗️ [수정 3] 월 1회 사용 제한 로직 (localStorage.setItem...) 삭제 ❗️❗️
-        // localStorage.setItem('lastAnalysisTime', now.getTime());
+        // (localStorage.setItem 삭제됨)
 
     } catch (error) {
         console.error('분석 중 오류 발생:', error);
@@ -155,16 +131,16 @@ analyzeButton.addEventListener('click', async () => {
 // 분석 결과를 HTML로 만들어 화면에 표시하는 함수
 function displayResults(data) {
     let html = '<h2>🔍 분석 결과</h2>';
-    const categoryOrder = ["전공 필수", "전공 선택", "필수 교양", "학문의 세계", "예체능", "기타 이수 과목", "비교과"];
-    const checklistLabels = {
-        'volunteer': '60시간 이상의 봉사활동 (보라매병원 포함)', 'cpr': 'CPR 교육 이수',
-        'leadership': '인성·리더십 교육 모듈1, 모듈2 이수', 'reading': '독서 일기 20편 이상 제출',
-        'human': '인문사회계열 과목 20학점 이상 이수', 'study': '의학 연구의 실제(전선, 3학점) 수강',
-        'cpm': 'CPM(맞춤형 교육과정) 이수', 'teps': 'TEPS 453점, IBT TOEFL 114점 이상'
-    };
     
-    // ❗️❗️ [수정 4] 데이터가 null일 경우를 대비한 방어 코드 ❗️❗️
-    // (서버가 멈추진 않았지만, analysisResult가 비어있을 경우)
+    // ❗️ [수정 1] "비교과"를 "필수 수료 요건", "선택 수료 요건"으로 변경
+    const categoryOrder = [
+        "전공 필수", "전공 선택", "필수 교양", 
+        "학문의 세계", "예체능", 
+        "필수 수료 요건", "선택 수료 요건"
+    ];
+    
+    // ❗️ [수정 2] checklistLabels 변수 삭제 (이제 서버에서 받음)
+
     if (!data) {
         resultArea.innerHTML = '<p class="error">분석 결과를 받아오는 데 실패했습니다.</p>';
         return;
@@ -235,49 +211,37 @@ function displayResults(data) {
                         const elementId = `courses-list-${groupName.replace(/[^a-zA-Z0-9]/g, '')}`; 
                         html += `<button class="toggle-button" onclick="toggleCourseList('${elementId}')">${groupName} 과목 목록 보기 (${coursesInGroup.length}개)</button>`;
                         
-                        // ❗️❗️ [수정 5] "coursesInGrop" 오타 수정 ❗️❗️
-                        html += `<div id="${elementId}" class="course-list-hidden" style="display: none; margin: 5px 0 10px 10px; padding: 8px; background: #f9f9f9; border: 1px solid #eee; border-radius: 4px;">${coursesInGroup.join(', ')}</div>`;
+                        // ❗️ [수정 3] "한 줄에 하나씩" 리스트로 변경
+                        const courseListHtml = coursesInGroup.map(course => `<li>${course}</li>`).join('');
+                        html += `<div id="${elementId}" class="course-list-hidden">
+                                     <ul class="recommended-list">${courseListHtml}</ul>
+                                 </div>`;
                     }
                     html += '</div>';
                 }
                 break;
                 
-            case 'list_completed_only':
-                html += `<p><strong>✅ 이수한 과목:</strong> ${details.completed.length > 0 ? details.completed.join(', ') : '없음'}</p>`;
+            // ❗️ [수정 4] 'checklist' 케이스 삭제
+            
+            // ❗️ [수정 5] "필수 수료 요건"을 위한 새 케이스
+            case 'simple_checklist':
+                const completedItems = details.completed.map(key => details.labels[key]);
+                const remainingCheckItems = details.remaining.map(key => details.labels[key]);
+                
+                html += `<p><strong>✅ 완료한 요건:</strong> ${completedItems.length > 0 ? completedItems.join(', ') : '없음'}</p>`;
+                html += `<p><strong>📝 남은 요건:</strong> ${remainingCheckItems.length > 0 ? remainingCheckItems.join(', ') : '모두 완료'}</p>`;
                 break;
-                
-            case 'checklist': // '비교과'
-                const requiredKeys = ['volunteer', 'cpr', 'leadership', 'reading'];
-                const reqCompleted = [];
-                const reqIncomplete = [];
-                const elecCompleted = [];
-                const requiredElecCount = 2;
 
-                for (const key in details.data) {
-                    if (details.data[key]) { 
-                        const label = checklistLabels[key];
-                        if (requiredKeys.includes(key)) {
-                            reqCompleted.push(label);
-                        } else {
-                            elecCompleted.push(label);
-                        }
-                    }
-                }
-                for (const key of requiredKeys) {
-                    if (!details.data[key]) { 
-                        reqIncomplete.push(checklistLabels[key]);
-                    }
-                }
+            // ❗️ [수정 6] "선택 수료 요건"을 위한 새 케이스
+            case 'count_checklist':
+                const isElecCompleted = details.neededCount === 0;
+                html += `<p class="summary ${isElecCompleted ? 'completed' : 'in-progress'}">
+                             <strong>상태: ${details.requiredCount}개 이상 중 ${details.completedCount}개 완료 (${details.neededCount}개 더 필요) ${isElecCompleted ? '✔️' : ''}</strong>
+                         </p>`;
                 
-                html += `<p><strong>✅ 완료한 필수 요건:</strong> ${reqCompleted.length > 0 ? reqCompleted.join(', ') : '없음'}</p>`;
-                html += `<p><strong>📝 남은 필수 요건:</strong> ${reqIncomplete.length > 0 ? reqIncomplete.join(', ') : '모두 완료'}</p>`;
-                
-                const neededElecCount = Math.max(0, requiredElecCount - elecCompleted.length);
-                const isElecCompleted = neededElecCount === 0;
-
-                html += `<p class="summary ${isElecCompleted ? 'completed' : 'in-progress'}"><strong>선택 요건 상태: ${requiredElecCount}개 이상 중 ${elecCompleted.length}개 완료 (${neededElecCount}개 더 필요) ${isElecCompleted ? '✔️' : ''}</strong></p>`;
-                if (elecCompleted.length > 0) {
-                    html += `<p><strong>✅ 완료한 선택 요건:</strong> ${elecCompleted.join(', ')}</p>`;
+                if (details.completed.length > 0) {
+                    const completedElecList = details.completed.map(key => details.labels[key]);
+                    html += `<p><strong>✅ 완료한 요건:</strong> ${completedElecList.join(', ')}</p>`;
                 }
                 break;
         }
@@ -293,10 +257,7 @@ function displayResults(data) {
 function toggleCourseList(elementId) {
     const listElement = document.getElementById(elementId);
     if (listElement) {
-        if (listElement.style.display === 'none') {
-            listElement.style.display = 'block';
-        } else {
-            listElement.style.display = 'none';
-        }
+        // ❗️ [수정 7] CSS 클래스로 제어 (더 부드러움)
+        listElement.classList.toggle('visible');
     }
 }
