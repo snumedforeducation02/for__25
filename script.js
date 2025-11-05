@@ -1,14 +1,12 @@
-// ===================================================
-// ❗️❗️ script.js 파일 전체를 이 코드로 덮어쓰세요 ❗️❗️
-// (48번 요청: '학문의 세계', '예체능' 버튼 텍스트 버그 수정)
-// ===================================================
+// ❗️가장 먼저 매뉴얼을 읽고, 매뉴얼을 참고해 코드를 보는 것을 추천드립니다.❗️
+// 매뉴얼에도 적어놨지만, 자칫 잘못 바꾸면 사이트가 완전히 셧다운될 수 있습니다.
+// 그러니 수정해야 할 부분이 생길 경우, 교육국 단톡방에 보고 후 조치 부탁드립니다.
+// 모르겠을 땐 gemini에게 물어보는걸 추천드립니다!
 
-// HTML 요소들을 가져옵니다.
 const analyzeButton = document.getElementById('analyze-button');
 const resultArea = document.getElementById('result-area');
 const loadingIndicator = document.getElementById('loading');
 
-// --- Choices.js 초기화 ---
 const electiveSelectElement = document.getElementById('elective-courses-select');
 const choices = new Choices(electiveSelectElement, {
     removeItemButton: true,
@@ -41,15 +39,12 @@ const languageChoices = new Choices(languageSelectElement, {
     maxItemText: (maxItemCount) => `2개까지만 선택할 수 있습니다.`,
 });
 
-// '분석 시작!' 버튼 클릭 이벤트
 analyzeButton.addEventListener('click', async () => {
     
-    // 로딩 UI 표시
     loadingIndicator.classList.remove('hidden');
     resultArea.innerHTML = '';
     
     try {
-        // --- 1. 사용자가 선택한 과목 데이터 수집 ---
         const completedCourses = [];
 
         document.querySelectorAll('#required-courses-list input[type="checkbox"]:checked').forEach(checkbox => {
@@ -84,7 +79,6 @@ analyzeButton.addEventListener('click', async () => {
                 completedCourses.push('음미대, 미학과 전공/교양');
             }
         }
-        // ❗️ [수정] 1-9. "기타" 학점 수집
         const extraCreditsInput = document.getElementById('extra-credits-input');
         if (extraCreditsInput && extraCreditsInput.value) {
              const count = parseInt(extraCreditsInput.value, 10) || 0;
@@ -95,7 +89,6 @@ analyzeButton.addEventListener('click', async () => {
 
         const allText = completedCourses.join(' ');
 
-        // --- 2. 비교과 체크리스트 데이터 수집 ---
         const checklistData = {
             'volunteer': document.getElementById('volunteer').checked,
             'cpr': document.getElementById('cpr').checked,
@@ -107,8 +100,6 @@ analyzeButton.addEventListener('click', async () => {
             'teps': document.getElementById('teps').checked,
         };
 
-        // --- 3. 백엔드로 데이터 전송 ---
-        // (Vercel 기준 /api/analyze, Netlify 기준 /.netlify/functions/analyze)
         const response = await fetch('/api/analyze', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -130,7 +121,6 @@ analyzeButton.addEventListener('click', async () => {
     }
 });
 
-// 분석 결과를 HTML로 만들어 화면에 표시하는 함수
 function displayResults(data) {
     let html = '<h2>🔍 분석 결과</h2>';
     
@@ -145,8 +135,6 @@ function displayResults(data) {
         return;
     }
 
-    // ❗️ [핵심 수정] 'for (const category of categoryOrder)' 루프가
-    // 'displayResults' 함수의 유일한 메인 루프인지 확인 (중첩되지 않았는지 확인)
     for (const category of categoryOrder) {
         if (!data[category]) continue;
         const details = data[category];
@@ -230,37 +218,31 @@ function displayResults(data) {
                 }
                 break;
 
-                // ❗️ [수정] "기타" 학점을 위한 새 케이스
             case 'credit_count_simple':
                 const isOtherCompleted = details.remainingCredits === 0;
                 html += `<p class="summary ${isOtherCompleted ? 'completed' : 'in-progress'}"><strong>상태: ${details.requiredCredits}학점 중 ${details.completedCredits}학점 이수 (${details.remainingCredits}학점 남음) ${isOtherCompleted ? '✔️' : ''}</strong></p>`;
                 break;
                 
-            // ❗️❗️ [수정] "필수 수료 요건" ❗️❗️
             case 'simple_checklist':
                 const completedItems = details.completed.map(key => details.labels[key]);
                 html += `<p><strong>✅ 완료한 요건:</strong> ${completedItems.length > 0 ? completedItems.join(', ') : '없음'}</p>`;
                 
-                // "남은 요건"을 동적으로 생성
                 let remainingHtml = '';
                 if (details.remaining.length > 0) {
                     details.remaining.forEach(key => {
                         const label = details.labels[key];
                         
                         if (key === 'volunteer') {
-                            // 봉사활동 링크 추가
                             remainingHtml += `<li class="requirement-item">${label} 
                                 <a href="https://www.1365.go.kr/vols/main.do" target="_blank" class="requirement-link">
                                     <br>봉사 시간 확인하러 가기 (*의료봉사만 인정)
                                 </a></li>`;
                         } else if (key === 'cpr') {
-                            // CPR 링크 추가 (대한적십자사 교육 사이트)
                             remainingHtml += `<li class="requirement-item">${label} 
                                 <a href="https://health4u.snu.ac.kr/healthCare/CPR/_/view.do" target="_blank" class="requirement-link">
                                     CPR 교육 신청하러 가기
                                 </a></li>`;
                         } else {
-                            // 나머지 (리더십, 독서일기)는 텍스트만
                             remainingHtml += `<li class="requirement-item">${label}</li>`;
                         }
                     });
@@ -271,7 +253,6 @@ function displayResults(data) {
                 break;
 
 
-            // (선택 수료 요건)
             case 'count_checklist':
                 const isElecCompleted = details.neededCount === 0;
                 html += `<p class="summary ${isElecCompleted ? 'completed' : 'in-progress'}">
@@ -289,26 +270,18 @@ function displayResults(data) {
     resultArea.innerHTML = html;
 }
 
-// ❗️❗️ [수정] 아코디언 기능 (Request 2) ❗️❗️
-/**
- * 토글 버튼 클릭 시, 다른 리스트는 닫고 해당 리스트만 열어줍니다 (아코디언)
- * @param {string} elementId - 보여주거나 숨길 div의 ID
- */
+
 function toggleCourseList(elementId) {
     const clickedElement = document.getElementById(elementId);
-    if (!clickedElement) return; // 안전 장치
+    if (!clickedElement) return; 
 
-    // 1. 클릭한 리스트가 이미 열려있었는지 확인
     const isAlreadyVisible = clickedElement.classList.contains('visible');
 
-    // 2. 모든 '.course-list-hidden'을 찾아서 'visible' 클래스 제거 (전부 닫기)
     const allOpenLists = document.querySelectorAll('.course-list-hidden.visible');
     allOpenLists.forEach(list => {
         list.classList.remove('visible');
     });
 
-    // 3. 만약 클릭한 리스트가 닫혀있었다면, 'visible' 클래스를 추가 (열기)
-    // (이미 열려있었다면, 2단계에서 닫힌 상태로 유지됨)
     if (!isAlreadyVisible) {
         clickedElement.classList.add('visible');
     }
