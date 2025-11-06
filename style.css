@@ -333,6 +333,34 @@ button#analyze-button:hover {
     color: #00336b;
     text-decoration: none;
 }
+.result-header {
+    display: flex;
+    justify-content: space-between; /* 양쪽 끝으로 정렬 */
+    align-items: center;
+    margin-bottom: 20px; /* 아래쪽 섹션과의 여백 */
+    border-bottom: 2px solid #eee; /* 구분선 */
+    padding-bottom: 15px;
+}
+.result-header h2 {
+    margin: 0; /* h2의 기본 마진 제거 */
+    text-align: left; /* 제목 왼쪽 정렬 */
+}
+
+/* (추가) 저장 버튼 스타일 */
+.save-button {
+    background-color: #3694f7; /* '분석' 버튼과 다른 색 (파란색) */
+    font-size: 14px;
+    padding: 8px 12px;
+    margin: 0; /* 불필요한 마진 제거 */
+    flex-shrink: 0; /* 모바일에서 찌그러지지 않게 함 */
+}
+.save-button:hover {
+    background-color: #3694f7;
+}
+.save-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
 
 /* ======================================= */
 /* ❗️ 반응형 (모바일) 스타일 ❗️ */
