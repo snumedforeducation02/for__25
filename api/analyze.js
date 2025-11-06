@@ -89,11 +89,7 @@ export default async function handler(req, res) {
 
     const analysisResult = {};
     
-    let totalElectiveCredits = 0; 
-    let totalAcademiaCredits = 0;
-    let totalVeritasCredits = 0;
-    let totalArtsCredits = 0;
-    let totalOtherCredits = 0;
+
 
     // ======================================================
     // 2. 전공 필수 과목명 변경을 원하는 경우, 아래를 수정해주세요!
@@ -416,46 +412,6 @@ analysisResult["선택 수료 요건"] = {
         remainingCredits: remainingOtherCredits
     };
 
-/// ======================================================
-    // 11. 전체 총 이수 학점 합산 (총 합산 학점) - [최종 결과]
-    // ======================================================
-    let requiredTotalCredits = 74; 
-    
-    // 최종 합산 계산 (모든 학점 변수 사용)
-    let finalCompletedCredits = 0;
-    // 전공 필수 (5과목 * 3학점 가정)
-    finalCompletedCredits += allRequiredCourses.length * 3; 
-
-    // 전공 선택 (totalElectiveCredits는 이미 타단과대 포함)
-    finalCompletedCredits += totalElectiveCredits;
-
-    // 필수 교양 (8과목 * 3학점 가정 + 외국어 2과목 * 3학점 가정)
-    finalCompletedCredits += fixedLiberalArts.length * 3; 
-    finalCompletedCredits += foreignLanguageOptions.filter(lang => allText.includes(lang)).length * 3; 
-
-    // 지성의 열쇠
-    finalCompletedCredits += totalAcademiaCredits;
-
-    // 베리타스
-    finalCompletedCredits += totalVeritasCredits;
-
-    // 예체능
-    finalCompletedCredits += totalArtsCredits;
-    
-    // 기타 (totalOtherCredits는 이미 초과 학점 포함)
-    finalCompletedCredits += totalOtherCredits;
-
-    // 요구 학점의 상세 구성
-    const requiredLiberalArts = 41;
-    const requiredMajor = 26;
-    const requiredOther = 7;
-
-    analysisResult["전체 총 이수 학점"] = {
-        description: `총 요구 학점 ${requiredTotalCredits}학점 (교양 ${requiredLiberalArts}+전공 ${requiredMajor}+기타 ${requiredOther})`, 
-        displayType: "total_credit_summary",
-        completedCredits: finalCompletedCredits,
-        requiredCredits: requiredTotalCredits
-    };
 
     return res.status(200).json({ success: true, analysisResult });
     
