@@ -320,7 +320,7 @@ function captureResults() {
 
             // 버튼 텍스트 복구
             if (captureButton) {
-                captureButton.innerText = '결과 이미지로 저장 📸';
+                captureButton.innerText = '결과 이미지로 저장';
                 captureButton.disabled = false;
             }
         })
