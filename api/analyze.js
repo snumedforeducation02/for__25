@@ -68,7 +68,7 @@ const allAcademiaCourses = [
 // 마찬가지로, 학문의 세계 영역 명을 변경하고 싶은 경우, 아래를 수정해주세요. 이때, 위 과목 group 옆 이름과 아래 영역 이름이 동일해야 합니다.
 const allAcademiaGroups = [
     "문화 해석과 상상", "역사적 탐구와 철학적 사유", "인간의 이해와 사회 분석"
-];       
+];        
 const allVeritasCourses = [
     // ❗️ 모든 과목은 3학점 가정입니다. ❗️
     "기후위기와 인류", "데이터로 디자인하는 리더십", "아르스 롱가 - 과학, 음악, 문학의 만남",
@@ -78,194 +78,193 @@ const allVeritasCourses = [
     "포용사회 실현을 위한 지역커뮤니티 문제해결", "한국전통가창과 노랫말 분석을 통한 미디 창작 및 실습"
 ];
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Only POST method allowed" });
-  }
-
-  try {
-    const bodyData = req.body || {};
-    const allText = bodyData.text || "";
-    const checklistData = bodyData.checklist || {};
-
-    const analysisResult = {};
-    
-
-
-    // ======================================================
-    // 2. 전공 필수 과목명 변경을 원하는 경우, 아래를 수정해주세요!
-    // ======================================================
-    const allRequiredCourses = [
-      "의예과신입생세미나", "의학입문", "자유주제탐구",
-      "의학연구의 이해", "기초의학통계학 및 실험"
-    ];
-    const completedRequired = [];
-    const remainingRequired = [];
-
-    allRequiredCourses.forEach(course => {
-      if (allText.includes(course)) completedRequired.push(course);
-      else remainingRequired.push(course);
-    });
-
-    analysisResult["전공 필수"] = {
-      description: "총 5개의 전공 필수 과목을 모두 이수해야 합니다.",
-      displayType: "list_all",
-      completed: completedRequired,
-      remaining: remainingRequired
-    };
-
-    // ======================================================
-    // 3. 전공 선택 과목명 변경 및 과목 추가를 원하는 경우, 아래를 수정해주세요!
-    // ======================================================
-    const allElectiveCourses = [
-      "국제의학의 이해", "몸 속으로의 여행", "바이오헬스케어와 혁신사고",
-      "사례병 질병 진단의 실제", "사회와 의료현장에서의 리빙랩", "세계예술 속 의학의 이해",
-      "세포분자생물학", "의대생을 위한 고전읽기", "의료와 데이터사이언스",
-      "의생명과학 논문의 이해", "의학연구의 실제", "통일의료"
-    ];
-      // 이 부분은 2학점 전공 선택을 분석을 위해 따로 빼놓은 부분입니다. 2학점 전선 과목 수정을 원하는 경우, 아래를 수정해주세요! 
-    const twoCreditElectives = [
-      "국제의학의 이해", "몸 속으로의 여행", "세계예술 속 의학의 이해", "통일의료"
-    ];
-    const requiredElectiveCredits = 12;
-    let totalElectiveCredits = 0;
-    const completedElectiveCourses = [];
-    const recommendedElectiveCourses = [];
-
-    allElectiveCourses.forEach(course => {
-      if (allText.includes(course)) {
-        completedElectiveCourses.push(course);
-        totalElectiveCredits += twoCreditElectives.includes(course) ? 2 : 3;
-      } else {
-        recommendedElectiveCourses.push(course);
-      }
-    });
-
-    const otherCollegeCredits = (allText.match(/타단과대 전공/g) || []).length;
-    if (otherCollegeCredits > 0) {
-      totalElectiveCredits += otherCollegeCredits;
-      completedElectiveCourses.push(`타단과대(자연대, 농생대, 공대, 수의대, 치대, 혁신공유학부) 전공 (${otherCollegeCredits}학점)`);
+    if (req.method !== "POST") {
+        return res.status(405).json({ error: "Only POST method allowed" });
     }
 
-    const remainingCredits = Math.max(0, requiredElectiveCredits - totalElectiveCredits);
+    try {
+        const bodyData = req.body || {};
+        const allText = bodyData.text || "";
+        const checklistData = bodyData.checklist || {};
 
-    analysisResult["전공 선택"] = {
-      description: "12학점 이상 이수해야 합니다. <br>*국제의학의 이해, 몸 속으로의 여행, 세계에술 속 의학의 이해, 통일의료-2학점, 그외 3학점",
-      displayType: "credit_count",
-      completed: completedElectiveCourses,
-      recommended: recommendedElectiveCourses,
-      completedCredits: totalElectiveCredits,
-      requiredCredits: requiredElectiveCredits,
-      remainingCredits
-    };
+        const analysisResult = {};
+        
 
-    // ======================================================
-    // 4. 필수 교양 과목명 변경 및 추가를 원하는 경우, 아래를 수정해주세요!
-    // ======================================================
-    const fixedLiberalArts = [
-      "대학글쓰기 1", "대학글쓰기 2: 과학기술글쓰기", "말하기와 토론",
-      "생물학", "생물학실험", "생명과학을 위한 수학/고급수학+수연",
-      "화학/고급화학", "화학실험"
-    ];
-    const foreignLanguageOptions = ["고급영어", "대학영어1", "대학영어2", "외국어1", "외국어2"];
-    const completedLiberalArts = [];
-    const remainingLiberalArts = [];
+        // ======================================================
+        // 2. 전공 필수 과목명 변경을 원하는 경우, 아래를 수정해주세요!
+        // ======================================================
+        const allRequiredCourses = [
+            "의예과신입생세미나", "의학입문", "자유주제탐구",
+            "의학연구의 이해", "기초의학통계학 및 실험"
+        ];
+        const completedRequired = [];
+        const remainingRequired = [];
 
-    fixedLiberalArts.forEach(course => {
-      if (allText.includes(course)) completedLiberalArts.push(course);
-      else remainingLiberalArts.push(course);
-    });
+        allRequiredCourses.forEach(course => {
+            if (allText.includes(course)) completedRequired.push(course);
+            else remainingRequired.push(course);
+        });
 
-    let foreignLanguageCount = 0;
-    foreignLanguageOptions.forEach(lang => {
-      if (allText.includes(lang)) {
-        completedLiberalArts.push(lang);
-        foreignLanguageCount++;
-      }
-    });
+        analysisResult["전공 필수"] = {
+            description: "총 5개의 전공 필수 과목을 모두 이수해야 합니다.",
+            displayType: "list_all",
+            completed: completedRequired,
+            remaining: remainingRequired
+        };
 
-    const neededLanguages = 2 - foreignLanguageCount;
-    if (neededLanguages > 0)
-      remainingLiberalArts.push(`영어/외국어 (${neededLanguages}과목 추가 필요)`);
+        // ======================================================
+        // 3. 전공 선택 과목명 변경 및 과목 추가를 원하는 경우, 아래를 수정해주세요!
+        // ======================================================
+        const allElectiveCourses = [
+            "국제의학의 이해", "몸 속으로의 여행", "바이오헬스케어와 혁신사고",
+            "사례병 질병 진단의 실제", "사회와 의료현장에서의 리빙랩", "세계예술 속 의학의 이해",
+            "세포분자생물학", "의대생을 위한 고전읽기", "의료와 데이터사이언스",
+            "의생명과학 논문의 이해", "의학연구의 실제", "통일의료"
+        ];
+          // 이 부분은 2학점 전공 선택을 분석을 위해 따로 빼놓은 부분입니다. 2학점 전선 과목 수정을 원하는 경우, 아래를 수정해주세요! 
+        const twoCreditElectives = [
+            "국제의학의 이해", "몸 속으로의 여행", "세계예술 속 의학의 이해", "통일의료"
+        ];
+        const requiredElectiveCredits = 12;
+        let totalElectiveCredits = 0;
+        const completedElectiveCourses = [];
+        const recommendedElectiveCourses = [];
 
-    analysisResult["필수 교양"] = {
-      description: "아래 교양 과목을 모두 이수해야 합니다.",
-      displayType: "list_all",
-      completed: completedLiberalArts,
-      remaining: remainingLiberalArts
-    };
+        allElectiveCourses.forEach(course => {
+            if (allText.includes(course)) {
+                completedElectiveCourses.push(course);
+                totalElectiveCredits += twoCreditElectives.includes(course) ? 2 : 3;
+            } else {
+                recommendedElectiveCourses.push(course);
+            }
+        });
 
-    // ======================================================
-    // 5. 지성의 열쇠 영역명 및 과목명은 이 파일 맨 위에서 이미 기록이 되어있습니다! 수정을 원하는 경우, 그 부분을 수정해주세요.
-    // ======================================================
-    const completedAcademiaCourses = [];
-    const completedGroups = new Set();
-    const completedGroupCredits = {}; 
-    let totalAcademiaCredits = 0;
-    const requiredAcademiaCredits = 9; 
-    const requiredGroupCredit = 3; 
+        const otherCollegeCredits = (allText.match(/타단과대 전공/g) || []).length;
+        if (otherCollegeCredits > 0) {
+            totalElectiveCredits += otherCollegeCredits;
+            completedElectiveCourses.push(`타단과대(자연대, 농생대, 공대, 수의대, 치대, 혁신공유학부) 전공 (${otherCollegeCredits}학점)`);
+        }
 
-    allAcademiaCourses.forEach(course => {
-      if (allText.includes(course.name)) {
-        completedAcademiaCourses.push(course);
-        completedGroups.add(course.group);
-        totalAcademiaCredits += 3; 
-        completedGroupCredits[course.group] = (completedGroupCredits[course.group] || 0) + 3;
-      }
-    });
+        const remainingCredits = Math.max(0, requiredElectiveCredits - totalElectiveCredits);
 
-   
-    const remainingGroups = allAcademiaGroups.filter(groupName => (completedGroupCredits[groupName] || 0) < requiredGroupCredit);
+        analysisResult["전공 선택"] = {
+            description: "12학점 이상 이수해야 합니다. <br>*국제의학의 이해, 몸 속으로의 여행, 세계에술 속 의학의 이해, 통일의료-2학점, 그외 3학점",
+            displayType: "credit_count",
+            completed: completedElectiveCourses,
+            recommended: recommendedElectiveCourses,
+            completedCredits: totalElectiveCredits,
+            requiredCredits: requiredElectiveCredits,
+            remainingCredits
+        };
 
-    const recommendedCoursesByGroup = {};
-    remainingGroups.forEach(groupName => {
-      recommendedCoursesByGroup[groupName] = allAcademiaCourses
-        .filter(c => c.group === groupName)
-        .map(c => c.name);
-    });
+        // ======================================================
+        // 4. 필수 교양 과목명 변경 및 추가를 원하는 경우, 아래를 수정해주세요!
+        // ======================================================
+        const fixedLiberalArts = [
+            "대학글쓰기 1", "대학글쓰기 2: 과학기술글쓰기", "말하기와 토론",
+            "생물학", "생물학실험", "생명과학을 위한 수학/고급수학+수연",
+            "화학/고급화학", "화학실험"
+        ];
+        const foreignLanguageOptions = ["고급영어", "대학영어1", "대학영어2", "외국어1", "외국어2"];
+        const completedLiberalArts = [];
+        const remainingLiberalArts = [];
 
-    const isGroupMet = remainingGroups.length === 0;
+        fixedLiberalArts.forEach(course => {
+            if (allText.includes(course)) completedLiberalArts.push(course);
+            else remainingLiberalArts.push(course);
+        });
 
-    analysisResult["지성의 열쇠"] = {
-     description: "3개 영역 모두에서 3학점 이상, 총 9학점 이상 이수해야 합니다. (모든 과목 3학점)",
-      displayType: "academia_group_count",
-      completedCourses: completedAcademiaCourses,
-      completedGroupCount: allAcademiaGroups.length - remainingGroups.length, 
-      requiredGroupCount: allAcademiaGroups.length, 
-      totalAcademiaCredits,
-      requiredCredits: requiredAcademiaCredits,
-      remainingGroups,
-      recommendedCoursesByGroup,
-      isGroupMet
-    };
+        let foreignLanguageCount = 0;
+        foreignLanguageOptions.forEach(lang => {
+            if (allText.includes(lang)) {
+                completedLiberalArts.push(lang);
+                foreignLanguageCount++;
+            }
+        });
+
+        const neededLanguages = 2 - foreignLanguageCount;
+        if (neededLanguages > 0)
+            remainingLiberalArts.push(`영어/외국어 (${neededLanguages}과목 추가 필요)`);
+
+        analysisResult["필수 교양"] = {
+            description: "아래 교양 과목을 모두 이수해야 합니다.",
+            displayType: "list_all",
+            completed: completedLiberalArts,
+            remaining: remainingLiberalArts
+        };
+
+        // ======================================================
+        // 5. 지성의 열쇠 영역명 및 과목명은 이 파일 맨 위에서 이미 기록이 되어있습니다! 수정을 원하는 경우, 그 부분을 수정해주세요.
+        // ======================================================
+        const completedAcademiaCourses = [];
+        const completedGroups = new Set();
+        const completedGroupCredits = {}; 
+        let totalAcademiaCredits = 0;
+        const requiredAcademiaCredits = 9; 
+        const requiredGroupCredit = 3; 
+
+        allAcademiaCourses.forEach(course => {
+            if (allText.includes(course.name)) {
+                completedAcademiaCourses.push(course);
+                completedGroups.add(course.group);
+                totalAcademiaCredits += 3; 
+                completedGroupCredits[course.group] = (completedGroupCredits[course.group] || 0) + 3;
+            }
+        });
+
+        
+        const remainingGroups = allAcademiaGroups.filter(groupName => (completedGroupCredits[groupName] || 0) < requiredGroupCredit);
+
+        const recommendedCoursesByGroup = {};
+        remainingGroups.forEach(groupName => {
+            recommendedCoursesByGroup[groupName] = allAcademiaCourses
+                .filter(c => c.group === groupName)
+                .map(c => c.name);
+        });
+
+        const isGroupMet = remainingGroups.length === 0;
+
+        analysisResult["지성의 열쇠"] = {
+            description: "3개 영역 모두에서 3학점 이상, 총 9학점 이상 이수해야 합니다. (모든 과목 3학점)",
+            displayType: "academia_group_count",
+            completedCourses: completedAcademiaCourses,
+            completedGroupCount: allAcademiaGroups.length - remainingGroups.length, 
+            requiredGroupCount: allAcademiaGroups.length, 
+            totalAcademiaCredits,
+            requiredCredits: requiredAcademiaCredits,
+            remainingGroups,
+            recommendedCoursesByGroup,
+            isGroupMet
+        };
 // ======================================================
 // 6. 베리타스 (3학점 이상) 
 // ======================================================
-    const requiredVeritasCredits = 3;
-    let totalVeritasCredits = 0;
-    const completedVeritasCourses = [];
-    const recommendedVeritasCourses = [];
+        const requiredVeritasCredits = 3;
+        let totalVeritasCredits = 0;
+        const completedVeritasCourses = [];
+        const recommendedVeritasCourses = [];
 
-    allVeritasCourses.forEach(course => {
-        if (allText.includes(course)) {
-            completedVeritasCourses.push(course);
-            totalVeritasCredits += 3;
-        } else {
-            recommendedVeritasCourses.push(course);
-        }
-    });
+        allVeritasCourses.forEach(course => {
+            if (allText.includes(course)) {
+                completedVeritasCourses.push(course);
+                totalVeritasCredits += 3;
+            } else {
+                recommendedVeritasCourses.push(course);
+            }
+        });
 
-    const remainingVeritasCredits = Math.max(0, requiredVeritasCredits - totalVeritasCredits);
+        const remainingVeritasCredits = Math.max(0, requiredVeritasCredits - totalVeritasCredits);
 
-    analysisResult["베리타스"] = {
-        description: "3학점 이상 이수해야 합니다. (모든 과목 3학점)",
-        displayType: "credit_count",
-        completed: completedVeritasCourses,
-        recommended: recommendedVeritasCourses,
-        completedCredits: totalVeritasCredits,
-        requiredCredits: requiredVeritasCredits,
-        remainingCredits: remainingVeritasCredits
-    };
-   // ======================================================
+        analysisResult["베리타스"] = {
+            description: "3학점 이상 이수해야 합니다. (모든 과목 3학점)",
+            displayType: "credit_count",
+            completed: completedVeritasCourses,
+            recommended: recommendedVeritasCourses,
+            completedCredits: totalVeritasCredits,
+            requiredCredits: requiredVeritasCredits,
+            remainingCredits: remainingVeritasCredits
+        };
+       // ======================================================
 // 7. 예체능 과목명 변경 및 과목 추가를 원하는 경우, 아래를 수정해주세요!
 // ======================================================
 const allArtsAndSportsCourses = [
@@ -313,7 +312,7 @@ analysisResult["예체능"] = {
     remainingCredits: remainingArtsCredits
 };
 
-      // ======================================================
+        // ======================================================
 // 8. "필수 수료 요건" 분석 파트입니다. 필수 수료 요건이 변경될 경우, 아래를 수정해주세요! 작은 따옴표 안은 그대로 유지하고, 오른쪽의 항목명만 수정하시길 바랍니다!
 // ======================================================
 
@@ -378,45 +377,45 @@ analysisResult["선택 수료 요건"] = {
 // ======================================================
 // 10. 기타 (12학점 이상) 
 // ======================================================
-    let excessElectiveCredits = Math.max(0, totalElectiveCredits - requiredElectiveCredits);
-    const ELECTIVE_CAP = 7;
-    if (excessElectiveCredits > ELECTIVE_CAP) {
-        excessElectiveCredits = ELECTIVE_CAP;
+        let excessElectiveCredits = Math.max(0, totalElectiveCredits - requiredElectiveCredits);
+        const ELECTIVE_CAP = 7;
+        if (excessElectiveCredits > ELECTIVE_CAP) {
+            excessElectiveCredits = ELECTIVE_CAP;
+        }
+
+        let excessAcademiaCredits = Math.max(0, totalAcademiaCredits - requiredAcademiaCredits);
+        let excessVeritasCredits = Math.max(0, totalVeritasCredits - requiredVeritasCredits); // 👈 베리타스 초과 학점 포함
+        let excessArtsCredits = Math.max(0, totalArtsCredits - requiredArtsCredits);
+
+        const otherCredits = (allText.match(/기타 학점/g) || []).length;
+
+        const requiredOtherCredits = 12;
+
+        // 초과 학점과 일반 교양 학점을 합산
+        const totalOtherCredits = excessElectiveCredits + excessAcademiaCredits + excessVeritasCredits + excessArtsCredits + otherCredits;
+        const remainingOtherCredits = Math.max(0, requiredOtherCredits - totalOtherCredits);
+
+        const otherDescription = `
+            *일반 교양 ${otherCredits}학점 + 
+            기타(전선 초과 ${excessElectiveCredits}학점 + 
+            지성의열쇠 초과 ${excessAcademiaCredits}학점 + 
+            베리타스 초과 ${excessVeritasCredits}학점 +
+            예체능 초과 ${excessArtsCredits}학점)
+        `;
+
+        analysisResult["기타"] = {
+            description: otherDescription,
+            displayType: "credit_count_simple",
+            completedCredits: totalOtherCredits,
+            requiredCredits: requiredOtherCredits,
+            remainingCredits: remainingOtherCredits
+        };
+
+
+        return res.status(200).json({ success: true, analysisResult });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, error: error.message });
     }
-
-    let excessAcademiaCredits = Math.max(0, totalAcademiaCredits - requiredAcademiaCredits);
-    let excessVeritasCredits = Math.max(0, totalVeritasCredits - requiredVeritasCredits); // 👈 베리타스 초과 학점 포함
-    let excessArtsCredits = Math.max(0, totalArtsCredits - requiredArtsCredits);
-
-    const otherCredits = (allText.match(/기타 학점/g) || []).length;
-
-    const requiredOtherCredits = 12;
-
-    // 초과 학점과 일반 교양 학점을 합산
-    const totalOtherCredits = excessElectiveCredits + excessAcademiaCredits + excessVeritasCredits + excessArtsCredits + otherCredits;
-    const remainingOtherCredits = Math.max(0, requiredOtherCredits - totalOtherCredits);
-
-    const otherDescription = `
-        *일반 교양 ${otherCredits}학점 + 
-        기타(전선 초과 ${excessElectiveCredits}학점 + 
-        지성의열쇠 초과 ${excessAcademiaCredits}학점 + 
-        베리타스 초과 ${excessVeritasCredits}학점 +
-        예체능 초과 ${excessArtsCredits}학점)
-    `;
-
-    analysisResult["기타"] = {
-        description: otherDescription,
-        displayType: "credit_count_simple",
-        completedCredits: totalOtherCredits,
-        requiredCredits: requiredOtherCredits,
-        remainingCredits: remainingOtherCredits
-    };
-
-
-    return res.status(200).json({ success: true, analysisResult });
-    
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, error: error.message });
-  }
 }
